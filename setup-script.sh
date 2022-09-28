@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Variables
-resourceGroup="acdnd-c4-project"
-location="westus"
+resourceGroup="resource-group-swedencentral"
+location="swedencentral"
 osType="UbuntuLTS"
 vmssName="udacity-vmss"
 adminName="udacityadmin"
-storageAccount="udacitydiag$RANDOM"
+storageAccount="mariassa"
 bePoolName="$vmssName-bepool"
 lbName="$vmssName-lb"
 lbRule="$lbName-network-rule"
