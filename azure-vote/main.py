@@ -25,18 +25,19 @@ from opencensus.ext.flask.flask_middleware import FlaskMiddleware
 
 # Logging
 logger = logging.getLogger(__name__)
-logger.addHandler(AzureEventHandler(connection_string='InstrumentationKey=871f77cd-9efa-41da-acad-cc54084bfe97'))
+logger.addHandler(AzureEventHandler(connection_string='InstrumentationKey=b495b627-1f54-4325-9ba7-212b132536ed'))
+logger.addHandler(AzureLogHandler(connection_string='InstrumentationKey=b495b627-1f54-4325-9ba7-212b132536ed'))
 logger.setLevel(logging.INFO)
 
 # Metrics
 exporter = metrics_exporter.new_metrics_exporter(
   enable_standard_metrics=True,
-  connection_string='InstrumentationKey=871f77cd-9efa-41da-acad-cc54084bfe97')
+  connection_string='InstrumentationKey=b495b627-1f54-4325-9ba7-212b132536ed')
 
 # Tracing
 tracer = Tracer(
     exporter=AzureExporter(
-        connection_string='InstrumentationKey=871f77cd-9efa-41da-acad-cc54084bfe97'),
+        connection_string='InstrumentationKey=b495b627-1f54-4325-9ba7-212b132536ed'),
     sampler=ProbabilitySampler(1.0),
 )
 
@@ -45,7 +46,7 @@ app = Flask(__name__)
 # Requests
 middleware = FlaskMiddleware(
     app,
-    exporter=AzureExporter(connection_string="InstrumentationKey=871f77cd-9efa-41da-acad-cc54084bfe97"),
+    exporter=AzureExporter(connection_string="InstrumentationKey=b495b627-1f54-4325-9ba7-212b132536ed"),
     sampler=ProbabilitySampler(rate=1.0)
 )
 
@@ -82,11 +83,12 @@ if not r.get(button2): r.set(button2,0)
 def index():
 
     if request.method == 'GET':
-            
-        logger.warning('Before the span')
-        with tracer.span(name='test'):
-            logger.warning('In the span')
-        logger.warning('After the span')
+
+        #logger.warning('Before the span')
+        #with tracer.span(name='test'):
+        #    line = logger.warning('In the span')
+        #    print(line)
+        #logger.warning('After the span')
         
         # Get current values
         vote1 = r.get(button1).decode('utf-8')
@@ -103,15 +105,15 @@ def index():
             r.set(button1,0)
             r.set(button2,0)
             # Use logger object to log cat vote
-            with tracer.span("Cats Vote trace") as span:
-                vote1 = r.get(button1).decode('utf-8')
-                properties = {'custom_dimensions': {'Cats Vote': vote1}}
-                logger.info('Cats Vote', extra=properties)
+            #with tracer.span("Cats Vote trace") as span:
+            #    vote1 = r.get(button1).decode('utf-8')
+            #    properties = {'custom_dimensions': {'Cats Vote': vote1}}
+            #    logger.info('Cats Vote', extra=properties)
             # Use logger object to log dog vote
-            with tracer.span("Dogs Vote trace") as span:
-                vote2 = r.get(button2).decode('utf-8')
-                properties = {'custom_dimensions': {'Dogs Vote': vote2}}
-                logger.info('Dogs Vote', extra=properties)
+            #with tracer.span("Dogs Vote trace") as span:
+            #    vote2 = r.get(button2).decode('utf-8')
+            #    properties = {'custom_dimensions': {'Dogs Vote': vote2}}
+            #    logger.info('Dogs Vote', extra=properties)
 
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
@@ -122,8 +124,15 @@ def index():
             r.incr(vote,1)
 
             # Get current values
-            vote1 = r.get(button1).decode('utf-8')
-            vote2 = r.get(button2).decode('utf-8')
+            with tracer.span(name='test'):
+                vote1 = r.get(button1).decode('utf-8')
+                properties = {'custom_dimensions': {'Cats Vote': vote1}}
+                logger.info('Cats Vote', extra=properties)
+                vote2 = r.get(button2).decode('utf-8')
+                properties = {'custom_dimensions': {'Dogs Vote': vote2}}
+                logger.info('Dogs Vote', extra=properties)
+
+                return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
 
             # Return results
             return render_template("index.html", value1=int(vote1), value2=int(vote2), button1=button1, button2=button2, title=title)
